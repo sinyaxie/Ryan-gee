@@ -346,11 +346,13 @@ let filter="Zote";
 let cart=[];
 let db=null,auth=null,isAdmin=false,newImage="",replaceId=null;
 
-const FB_READY=typeof firebase!=="undefined"&&firebaseConfig.apiKey&&!firebaseConfig.apiKey.startsWith("YOUR_");
+let FB_READY=typeof firebase!=="undefined"&&firebaseConfig.apiKey&&!firebaseConfig.apiKey.startsWith("YOUR_");
 if(FB_READY){
+try{
 firebase.initializeApp(firebaseConfig);
 db=firebase.firestore();
 auth=firebase.auth();
+}catch(e){FB_READY=false;console.error(e)}
 }
 
 function $(id){return document.getElementById(id)}
@@ -469,7 +471,3 @@ $("overlay").classList.add("show");
 function closeCart(){
 $("cart").classList.remove("open");
 $("overlay").classList.remove("show");
-}
-
-function sendOrder(e){
-e.preventDefault();
