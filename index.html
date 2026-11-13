@@ -234,7 +234,8 @@ authDomain:"ryan-gee.firebaseapp.com",
 projectId:"ryan-gee",
 storageBucket:"ryan-gee.firebasestorage.app",
 messagingSenderId:"70761275713",
-appId:"1:70761275713:web:a383bd1e8931182bdc01c0"
+appId:"1:70761275713:web:a383bd1e8931182bdc01c0",
+measurementId:"G-MRL8012Y10"
 };
 
 const sizes=[
@@ -251,6 +252,8 @@ const DEFAULTS=[
 ["Marshmallow","Wanawake"],["Sauvage Dior","Wanaume"],["9PM","Wanaume"],["Good Girl","Wanawake"]
 ].map(([name,category],i)=>({id:"d"+i,name,category,image:"",available:true}));
 
+let analytics=null,logEv=null;
+const track=(name,params)=>{try{if(analytics&&logEv)logEv(analytics,name,params)}catch(e){}};
 let products=DEFAULTS;
 let filter="Zote";
 let cart=[];
@@ -293,6 +296,7 @@ $("price"+id).textContent=money(sizes.find(s=>s.ml===ml).price);
 
 function setFilter(f,btn){
 filter=f;
+track("select_content",{content_type:"category",item_id:f});
 document.querySelectorAll(".filter").forEach(b=>b.classList.remove("active"));
 btn.classList.add("active");
 renderProducts();
@@ -301,6 +305,7 @@ renderProducts();
 function zoom(id){
 const p=products.find(x=>x.id===id);
 if(!p||!p.image)return;
+track("view_item",{items:[{item_name:p.name,item_category:p.category}]});
 $("lightboxImg").src=p.image;
 $("lightbox").classList.add("show");
 }
@@ -313,6 +318,7 @@ const ml=Number($("size"+id).value);
 const size=sizes.find(s=>s.ml===ml);
 const p=products.find(x=>x.id===id);
 const existing=cart.find(x=>x.name===p.name&&x.ml===ml);
+track("add_to_cart",{currency:"TZS",value:size.price,items:[{item_name:p.name,item_category:p.category,item_variant:ml+"ML",price:size.price,quantity:1}]});
 if(existing){existing.qty++}else{cart.push({name:p.name,ml:ml,price:size.price,qty:1})}
 updateCart();
 openCart();
@@ -350,6 +356,8 @@ if(cart.length===0){alert("Tafadhali chagua perfume kwanza.");return}
 const name=$("name").value.trim(),phone=$("phone").value.trim(),area=$("area").value.trim(),note=$("note").value.trim();
 const lines=cart.map(x=>`- ${x.name}: ${x.ml} ML x ${x.qty} = ${money(x.price*x.qty)}`).join("\n");
 const total=cart.reduce((a,x)=>a+x.price*x.qty,0);
+track("begin_checkout",{currency:"TZS",value:total,items:cart.map(x=>({item_name:x.name,item_variant:x.ml+"ML",price:x.price,quantity:x.qty}))});
+track("whatsapp_order",{value:total,wholesale:total>=100000});
 const message=`Habari Ryan-gee Perfume! Naomba kuweka oda.
 
 ${lines}
@@ -372,17 +380,31 @@ loadCart();
 renderProducts();
 updateCart();
 
+/* Analytics: what customers search for and contact clicks */
+let searchTimer;
+$("search").addEventListener("input",()=>{
+clearTimeout(searchTimer);
+searchTimer=setTimeout(()=>{const t=$("search").value.trim();if(t)track("search",{search_term:t})},1200);
+});
+document.querySelectorAll('a[href*="wa.me"]').forEach(a=>a.addEventListener("click",()=>track("contact_whatsapp")));
+
 /* Load perfumes from Firebase (site works with defaults if this fails) */
 try{
 const V="10.12.2";
 const {initializeApp}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
 const {getFirestore,collection,query,orderBy,onSnapshot}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
-const db=getFirestore(initializeApp(firebaseConfig));
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 onSnapshot(query(collection(db,"perfumes"),orderBy("createdAt","desc")),snap=>{
 const list=snap.docs.map(d=>({id:d.id,...d.data()}));
 products=list.length?list:DEFAULTS;
 renderProducts();
 },err=>console.error("Firestore:",err));
+
+try{
+const {getAnalytics,logEvent,isSupported}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-analytics.js`);
+if(await isSupported()){analytics=getAnalytics(app);logEv=logEvent}
+}catch(e){console.warn("Analytics:",e)}
 }catch(e){console.error("Firebase:",e)}
 </script>
 
