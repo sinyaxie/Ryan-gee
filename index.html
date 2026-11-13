@@ -63,7 +63,7 @@ section{padding:60px 5%}
 .mini-bottle{width:60px;height:95px;border:1px solid #e4c77f;border-radius:12px 12px 18px 18px;background:linear-gradient(100deg,#ffffff33,#d8b56d55,#0005);position:relative}
 .mini-bottle:before{content:"";position:absolute;top:-14px;left:18px;width:23px;height:14px;background:#d8b56d;border-radius:4px 4px 0 0}
 .mini-bottle:after{content:"R-G";position:absolute;top:38px;left:0;right:0;text-align:center;color:#f5dfa8;font:bold 13px Georgia}
-.badge{position:absolute;top:10px;left:10px;background:#b3261e;color:white;font-size:11px;font-weight:bold;padding:5px 10px;border-radius:20px}
+.badge{position:absolute;top:10px;left:10px;background:#b3261e;color:white;font-size:11px;font-weight:bold;padding:5px 10px;border-radius:20px;z-index:1}
 .info{padding:14px}
 .info h3{font:20px Georgia}
 .info p{color:#888;font-size:12px;margin:4px 0 10px}
@@ -84,7 +84,8 @@ section{padding:60px 5%}
 .contact{background:#111;color:white;text-align:center}
 .contact h2{font:36px Georgia;color:#f5dfa8;margin:10px}
 .contact p{color:#ddd;margin-bottom:20px}
-footer{background:#080808;color:#aaa;text-align:center;padding:18px;font-size:12px;user-select:none;-webkit-user-select:none}
+footer{background:#080808;color:#aaa;text-align:center;padding:18px;font-size:12px}
+footer small{color:#555;margin-left:6px}
 
 .overlay{display:none;position:fixed;inset:0;background:#0008;z-index:20}
 .overlay.show{display:block}
@@ -103,34 +104,9 @@ footer{background:#080808;color:#aaa;text-align:center;padding:18px;font-size:12
 .order-form textarea{min-height:70px}
 .whatsapp{background:#168b50;color:white;border:0;padding:14px;border-radius:25px;font-weight:bold}
 
-/* Lightbox */
 .lightbox{display:none;position:fixed;inset:0;background:#000d;z-index:60;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
 .lightbox.show{display:flex}
 .lightbox img{max-width:100%;max-height:90vh;border-radius:12px}
-
-/* Admin */
-.admin{display:none;position:fixed;inset:0;background:#000b;z-index:50;overflow:auto;padding:20px}
-.admin.show{display:block}
-.admin-box{max-width:640px;margin:auto;background:white;border-radius:16px;padding:20px}
-.admin-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}
-.admin-top h2{font:24px Georgia}
-.admin-top div{display:flex;gap:8px}
-.btn-sm{border:0;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:bold;background:#eee}
-.btn-dark{background:#111;color:#f5dfa8}
-.btn-red{background:#fbe3e1;color:#b3261e}
-.admin-box input[type=text],.admin-box input[type=email],.admin-box input[type=password],.admin-box select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px;font-size:14px}
-.admin-box h3{margin:18px 0 10px;font-size:16px}
-.preview{width:140px;height:140px;border-radius:12px;object-fit:cover;border:1px dashed #bbb;display:none;margin:5px 0 12px}
-.status{font-size:13px;margin:8px 0;min-height:18px;color:#555}
-.status.err{color:#b3261e}
-.status.ok{color:#168b50}
-.admin-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eee}
-.admin-item img,.admin-item .noimg{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#eee;flex:none;display:grid;place-items:center;font-size:10px;color:#999;text-align:center}
-.admin-item .meta{flex:1;min-width:0}
-.admin-item .meta b{display:block;font-size:14px}
-.admin-item .meta small{color:#888}
-.admin-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.note{background:#fff7e0;border:1px solid #ecd48a;padding:12px;border-radius:10px;font-size:13px;line-height:1.6;margin-bottom:12px}
 
 @media(max-width:800px){
 .grid{grid-template-columns:repeat(2,1fr)}
@@ -146,8 +122,6 @@ nav{display:none}
 .info h3{font-size:17px}
 .product-image{height:150px}
 .heading h2{font-size:29px}
-.admin-item{flex-wrap:wrap}
-.admin-actions{width:100%;justify-content:flex-start}
 }
 </style>
 </head>
@@ -227,7 +201,7 @@ nav{display:none}
 </div>
 </section>
 
-<footer id="footer">© <span id="year"></span> Ryan-gee Perfume. Haki zote zimehifadhiwa. <a href="#admin" onclick="openAdmin();return false;" style="color:#888;margin-left:8px;text-decoration:underline">Admin</a></footer>
+<footer>© <span id="year"></span> Ryan-gee Perfume. Haki zote zimehifadhiwa.<small>v3</small></footer>
 
 <div class="overlay" id="overlay" onclick="closeCart()"></div>
 
@@ -249,77 +223,19 @@ nav{display:none}
 </form>
 </aside>
 
-<!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lightboxImg" alt=""></div>
 
-<!-- ADMIN PANEL -->
-<div class="admin" id="admin">
-<div class="admin-box">
-
-<div id="loginView">
-<div class="admin-top"><h2>Admin Login</h2><button class="btn-sm" onclick="closeAdmin()">Funga</button></div>
-<div id="noFirebase" class="note" style="display:none">Firebase bado haijawekwa. Weka <b>firebaseConfig</b> kwenye code (angalia sehemu ya JS) ili admin ifanye kazi.</div>
-<form onsubmit="adminLogin(event)">
-<input type="email" id="adminEmail" placeholder="Email ya admin" required>
-<input type="password" id="adminPass" placeholder="Password" required>
-<button class="btn-sm btn-dark" style="width:100%;padding:12px" type="submit">Ingia</button>
-</form>
-<div class="status" id="loginStatus"></div>
-</div>
-
-<div id="dashView" style="display:none">
-<div class="admin-top">
-<h2>Admin Panel</h2>
-<div>
-<button class="btn-sm" onclick="adminLogout()">Toka</button>
-<button class="btn-sm btn-dark" onclick="closeAdmin()">Funga</button>
-</div>
-</div>
-
-<h3>Ongeza Perfume Mpya</h3>
-<input type="text" id="newName" placeholder="Jina la perfume">
-<select id="newCat">
-<option value="Wanaume">Wanaume</option>
-<option value="Wanawake">Wanawake</option>
-<option value="Unisex">Unisex</option>
-</select>
-<input type="file" id="newFile" accept="image/*" onchange="previewNew(this)">
-<img class="preview" id="newPreview" alt="">
-<button class="btn-sm btn-dark" style="width:100%;padding:12px" id="saveBtn" onclick="addPerfume()">Hifadhi Perfume</button>
-<div class="status" id="adminStatus"></div>
-
-<h3>Perfume Zilizopo</h3>
-<div id="seedBox" class="note" style="display:none">
-Perfume zinazoonekana sasa ni za mwanzo (default), bado hazijaingia kwenye database. Bonyeza kuziingiza ili uweze kuweka picha kwa kila moja.
-<br><br><button class="btn-sm btn-dark" onclick="seedDefaults()">Ingiza Perfume za Mwanzo</button>
-</div>
-<div id="adminList"></div>
-</div>
-
-</div>
-</div>
-
-<input type="file" id="replaceFile" accept="image/*" style="display:none">
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<script>
+<script type="module">
 const WHATSAPP="255696481628";
 
-/* ====== WEKA FIREBASE CONFIG YAKO HAPA ====== */
 const firebaseConfig={
 apiKey:"AIzaSyA5v3s5BKtHk79AzxWWygC_gmhVW_Vy1QY",
 authDomain:"ryan-gee.firebaseapp.com",
 projectId:"ryan-gee",
 storageBucket:"ryan-gee.firebasestorage.app",
 messagingSenderId:"70761275713",
-appId:"1:70761275713:web:a383bd1e8931182bdc01c0",
-measurementId:"G-MRL8012Y10"
+appId:"1:70761275713:web:a383bd1e8931182bdc01c0"
 };
-/* =========================================== */
 
 const sizes=[
 {ml:6,price:6000},
@@ -331,53 +247,23 @@ const sizes=[
 ];
 
 const DEFAULTS=[
-{name:"Eden Juice",category:"Unisex"},
-{name:"My Way",category:"Wanawake"},
-{name:"Creed Aventus",category:"Wanaume"},
-{name:"Pink Chiffon",category:"Wanawake"},
-{name:"Marshmallow",category:"Wanawake"},
-{name:"Sauvage Dior",category:"Wanaume"},
-{name:"9PM",category:"Wanaume"},
-{name:"Good Girl",category:"Wanawake"}
-].map((p,i)=>({...p,id:"d"+i,image:"",available:true,isDefault:true}));
+["Eden Juice","Unisex"],["My Way","Wanawake"],["Creed Aventus","Wanaume"],["Pink Chiffon","Wanawake"],
+["Marshmallow","Wanawake"],["Sauvage Dior","Wanaume"],["9PM","Wanaume"],["Good Girl","Wanawake"]
+].map(([name,category],i)=>({id:"d"+i,name,category,image:"",available:true}));
 
 let products=DEFAULTS;
 let filter="Zote";
 let cart=[];
-let db=null,auth=null,isAdmin=false,newImage="",replaceId=null;
 
-let FB_READY=typeof firebase!=="undefined"&&firebaseConfig.apiKey&&!firebaseConfig.apiKey.startsWith("YOUR_");
-if(FB_READY){
-try{
-firebase.initializeApp(firebaseConfig);
-db=firebase.firestore();
-auth=firebase.auth();
-}catch(e){FB_READY=false;console.error(e)}
-}
-
-function $(id){return document.getElementById(id)}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function money(n){return "TSh "+n.toLocaleString("en-US")}
-
-/* ---------- Products ---------- */
-function loadProducts(){
-if(!db){products=DEFAULTS;renderProducts();return}
-db.collection("perfumes").orderBy("createdAt","desc").onSnapshot(snap=>{
-const list=snap.docs.map(d=>({id:d.id,...d.data()}));
-products=list.length?list:DEFAULTS;
-renderProducts();
-if(isAdmin)renderAdminList();
-},()=>{products=DEFAULTS;renderProducts()});
-}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>"TSh "+n.toLocaleString("en-US");
 
 function renderProducts(){
 const search=$("search").value.toLowerCase();
-const shown=products.filter(p=>
-(filter==="Zote"||p.category===filter)&&
-p.name.toLowerCase().includes(search)
-);
+const shown=products.filter(p=>(filter==="Zote"||p.category===filter)&&p.name.toLowerCase().includes(search));
 
-const html=shown.map(p=>{
+$("products").innerHTML=shown.map(p=>{
 const sold=p.available===false;
 const img=p.image
 ?`<div class="product-image has-img" onclick="zoom('${p.id}')"><img src="${p.image}" alt="${esc(p.name)}" loading="lazy"></div>`
@@ -397,15 +283,12 @@ ${sizes.map(s=>`<option value="${s.ml}">${s.ml} ML — ${money(s.price)}</option
 <button class="add" ${sold?"disabled":""} onclick="addToCart('${p.id}')">${sold?"Imeisha":"Weka Kwenye Kapu"}</button>
 </div>
 </div>`;
-}).join("");
-
-$("products").innerHTML=html||'<div class="empty">Hakuna perfume iliyopatikana.</div>';
+}).join("")||'<div class="empty">Hakuna perfume iliyopatikana.</div>';
 }
 
 function updatePrice(id){
 const ml=Number($("size"+id).value);
-const size=sizes.find(s=>s.ml===ml);
-$("price"+id).textContent=money(size.price);
+$("price"+id).textContent=money(sizes.find(s=>s.ml===ml).price);
 }
 
 function setFilter(f,btn){
@@ -422,7 +305,6 @@ $("lightboxImg").src=p.image;
 $("lightbox").classList.add("show");
 }
 
-/* ---------- Cart ---------- */
 function saveCart(){try{localStorage.setItem("rg_cart",JSON.stringify(cart))}catch(e){}}
 function loadCart(){try{cart=JSON.parse(localStorage.getItem("rg_cart")||"[]")||[]}catch(e){cart=[]}}
 
@@ -431,16 +313,14 @@ const ml=Number($("size"+id).value);
 const size=sizes.find(s=>s.ml===ml);
 const p=products.find(x=>x.id===id);
 const existing=cart.find(x=>x.name===p.name&&x.ml===ml);
-if(existing){existing.qty++}
-else{cart.push({name:p.name,ml:ml,price:size.price,qty:1})}
+if(existing){existing.qty++}else{cart.push({name:p.name,ml:ml,price:size.price,qty:1})}
 updateCart();
 openCart();
 }
 
 function updateCart(){
 $("count").textContent=cart.reduce((a,x)=>a+x.qty,0);
-
-const html=cart.map((x,i)=>`
+$("cartItems").innerHTML=cart.map((x,i)=>`
 <div class="cart-line">
 <strong>${esc(x.name)}</strong>
 <small>${x.ml} ML — ${money(x.price)}</small>
@@ -450,10 +330,7 @@ const html=cart.map((x,i)=>`
 <button onclick="changeQty(${i},1)">+</button>
 <strong style="margin-left:auto">${money(x.price*x.qty)}</strong>
 </div>
-</div>
-`).join("");
-
-$("cartItems").innerHTML=html||"<p style='padding:20px 0;color:#777'>Kapu lako bado halina bidhaa.</p>";
+</div>`).join("")||"<p style='padding:20px 0;color:#777'>Kapu lako bado halina bidhaa.</p>";
 $("total").textContent="Jumla: "+money(cart.reduce((a,x)=>a+x.price*x.qty,0));
 saveCart();
 }
@@ -464,10 +341,50 @@ if(cart[i].qty<=0)cart.splice(i,1);
 updateCart();
 }
 
-function openCart(){
-$("cart").classList.add("open");
-$("overlay").classList.add("show");
+function openCart(){$("cart").classList.add("open");$("overlay").classList.add("show")}
+function closeCart(){$("cart").classList.remove("open");$("overlay").classList.remove("show")}
+
+function sendOrder(e){
+e.preventDefault();
+if(cart.length===0){alert("Tafadhali chagua perfume kwanza.");return}
+const name=$("name").value.trim(),phone=$("phone").value.trim(),area=$("area").value.trim(),note=$("note").value.trim();
+const lines=cart.map(x=>`- ${x.name}: ${x.ml} ML x ${x.qty} = ${money(x.price*x.qty)}`).join("\n");
+const total=cart.reduce((a,x)=>a+x.price*x.qty,0);
+const message=`Habari Ryan-gee Perfume! Naomba kuweka oda.
+
+${lines}
+
+Jumla: ${money(total)}
+
+Jina: ${name}
+Simu: ${phone}
+Eneo: ${area}
+Ujumbe: ${note||"Hakuna"}
+
+Tafadhali nithibitishie oda yangu na maelezo ya malipo na usafirishaji. Asante.`;
+window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(message),"_blank");
 }
-function closeCart(){
-$("cart").classList.remove("open");
-$("overlay").classList.remove("show");
+
+Object.assign(window,{renderProducts,updatePrice,setFilter,zoom,addToCart,changeQty,openCart,closeCart,sendOrder});
+
+$("year").textContent=new Date().getFullYear();
+loadCart();
+renderProducts();
+updateCart();
+
+/* Load perfumes from Firebase (site works with defaults if this fails) */
+try{
+const V="10.12.2";
+const {initializeApp}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+const {getFirestore,collection,query,orderBy,onSnapshot}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+const db=getFirestore(initializeApp(firebaseConfig));
+onSnapshot(query(collection(db,"perfumes"),orderBy("createdAt","desc")),snap=>{
+const list=snap.docs.map(d=>({id:d.id,...d.data()}));
+products=list.length?list:DEFAULTS;
+renderProducts();
+},err=>console.error("Firestore:",err));
+}catch(e){console.error("Firebase:",e)}
+</script>
+
+</body>
+</html>
