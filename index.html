@@ -227,7 +227,7 @@ nav{display:none}
 </div>
 </section>
 
-<footer id="footer">© <span id="year"></span> Ryan-gee Perfume. Haki zote zimehifadhiwa.</footer>
+<footer id="footer">© <span id="year"></span> Ryan-gee Perfume. Haki zote zimehifadhiwa. <a href="#admin" onclick="openAdmin();return false;" style="color:#888;margin-left:8px;text-decoration:underline">Admin</a></footer>
 
 <div class="overlay" id="overlay" onclick="closeCart()"></div>
 
@@ -473,7 +473,3 @@ $("overlay").classList.remove("show");
 
 function sendOrder(e){
 e.preventDefault();
-if(cart.length===0){alert("Tafadhali chagua perfume kwanza.");return}
-
-const name=$("name").value.trim();
-const phone=$("pho
