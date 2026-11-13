@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Admin - Ryan-gee Perfume</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:Arial,sans-serif;background:#111;color:#222;padding:16px;min-height:100vh}
+.box{max-width:640px;margin:20px auto;background:#fff;border-radius:16px;padding:20px}
+h1{font:24px Georgia,serif;margin-bottom:4px}
+h1 small{font:12px Arial;color:#999}
+h3{margin:18px 0 10px;font-size:16px}
+input[type=text],input[type=email],input[type=password],select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px;font-size:15px;background:#fff}
+button{cursor:pointer}
+.btn{border:0;border-radius:20px;padding:12px 16px;font-size:14px;font-weight:bold;background:#eee}
+.btn.dark{background:#111;color:#f5dfa8;width:100%}
+.btn.sm{padding:8px 12px;font-size:13px}
+.btn.red{background:#fbe3e1;color:#b3261e}
+.status{font-size:13px;margin:8px 0;min-height:18px;color:#555;line-height:1.5;word-break:break-word}
+.status.err{color:#b3261e}
+.status.ok{color:#168b50}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0}
+.preview{width:140px;height:140px;border-radius:12px;object-fit:cover;border:1px dashed #bbb;margin:5px 0 12px;display:block}
+.item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eee;flex-wrap:wrap}
+.item img,.item .noimg{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#eee;flex:none;display:grid;place-items:center;font-size:10px;color:#999;text-align:center}
+.item .meta{flex:1;min-width:120px}
+.item .meta b{display:block;font-size:14px}
+.item .meta small{color:#888}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.note{background:#fff7e0;border:1px solid #ecd48a;padding:12px;border-radius:10px;font-size:13px;line-height:1.6;margin-bottom:12px}
+a{color:#9b702d}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>Ryan-gee Admin <small>v3</small></h1>
+<div class="status" id="fb">Inapakia Firebase...</div>
+
+<div id="loginView">
+<form id="loginForm">
+<input type="email" id="email" placeholder="Email ya admin" autocomplete="username" required>
+<input type="password" id="pass" placeholder="Password" autocomplete="current-password" required>
+<button class="btn dark" type="submit">Ingia</button>
+</form>
+<div class="status" id="loginStatus"></div>
+</div>
+
+<div id="dashView" hidden>
+<div class="top"><b>Umeingia ✔</b><button class="btn sm" id="logoutBtn">Toka</button></div>
+
+<h3>Ongeza Perfume Mpya</h3>
+<input type="text" id="newName" placeholder="Jina la perfume">
+<select id="newCat">
+<option value="Wanaume">Wanaume</option>
+<option value="Wanawake">Wanawake</option>
+<option value="Unisex">Unisex</option>
+</select>
+<input type="file" id="newFile" accept="image/*">
+<img class="preview" id="newPreview" alt="" hidden>
+<button class="btn dark" id="saveBtn">Hifadhi Perfume</button>
+<div class="status" id="adminStatus"></div>
+
+<h3>Perfume Zilizopo</h3>
+<div id="seedBox" class="note" hidden>
+Database bado haina perfume. Bonyeza kuingiza zile 8 za mwanzo, kisha uweke picha kwa kila moja.<br><br>
+<button class="btn sm" id="seedBtn" style="background:#111;color:#f5dfa8">Ingiza Perfume za Mwanzo</button>
+</div>
+<div id="list"></div>
+</div>
+
+<p style="margin-top:20px;font-size:13px"><a href="./">← Rudi kwenye site</a></p>
+</div>
+
+<input type="file" id="replaceFile" accept="image/*" hidden>
+
+<script type="module">
+const cfg={
+apiKey:"AIzaSyA5v3s5BKtHk79AzxWWygC_gmhVW_Vy1QY",
+authDomain:"ryan-gee.firebaseapp.com",
+projectId:"ryan-gee",
+storageBucket:"ryan-gee.firebasestorage.app",
+messagingSenderId:"70761275713",
+appId:"1:70761275713:web:a383bd1e8931182bdc01c0"
+};
+const V="10.12.2";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function say(id,msg,type){const e=$(id);e.textContent=msg;e.className="status"+(type?" "+type:"")}
+const errText=e=>(e&&(e.code||e.message))||"kosa";
+
+const DEFAULTS=[
+["Eden Juice","Unisex"],["My Way","Wanawake"],["Creed Aventus","Wanaume"],["Pink Chiffon","Wanawake"],
+["Marshmallow","Wanawake"],["Sauvage Dior","Wanaume"],["9PM","Wanaume"],["Good Girl","Wanawake"]
+];
+
+let auth,db,A,F,items=[],newImage="",replaceId=null,unsub=null;
+
+try{
+const app0=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+A=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`);
+F=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+const app=app0.initializeApp(cfg);
+auth=A.getAuth(app);
+db=F.getFirestore(app);
+say("fb","Firebase imeunganishwa ✔ (project: "+cfg.projectId+")","ok");
+}catch(e){
+say("fb","Firebase imeshindwa kupakia: "+errText(e)+". Angalia internet kisha refresh.","err");
+}
+
+function compress(file,max=700,q=0.8){
+return new Promise((resolve,reject)=>{
+const img=new Image();
+const url=URL.createObjectURL(file);
+img.onload=()=>{
+const r=Math.min(1,max/Math.max(img.width,img.height));
+const w=Math.round(img.width*r),h=Math.round(img.height*r);
+const c=document.createElement("canvas");
+c.width=w;c.height=h;
+const x=c.getContext("2d");
+x.fillStyle="#fff";x.fillRect(0,0,w,h);
+x.drawImage(img,0,0,w,h);
+URL.revokeObjectURL(url);
+resolve(c.toDataURL("image/jpeg",q));
+};
+img.onerror=()=>reject(new Error("Picha haisomeki"));
+img.src=url;
+});
+}
+
+/* Login */
+$("loginForm").addEventListener("submit",async e=>{
+e.preventDefault();
+if(!auth){say("loginStatus","Firebase haijapakia.","err");return}
+say("loginStatus","Inaingia...");
+try{
+await A.signInWithEmailAndPassword(auth,$("email").value.trim(),$("pass").value);
+say("loginStatus","");
+$("pass").value="";
+}catch(err){
+say("loginStatus","Imeshindwa: "+errText(err),"err");
+}
+});
+$("logoutBtn").addEventListener("click",()=>A.signOut(auth));
+
+if(auth){
+A.onAuthStateChanged(auth,u=>{
+$("loginView").hidden=!!u;
+$("dashView").hidden=!u;
+if(unsub){unsub();unsub=null}
+if(u){
+const q=F.query(F.collection(db,"perfumes"),F.orderBy("createdAt","desc"));
+unsub=F.onSnapshot(q,snap=>{
+items=snap.docs.map(d=>({id:d.id,...d.data()}));
+renderList();
+},err=>say("adminStatus","Imeshindwa kusoma database: "+errText(err)+" (angalia Firestore imetengenezwa na rules)","err"));
+}
+});
+}
+
+function renderList(){
+$("seedBox").hidden=items.length>0;
+$("list").innerHTML=items.map(p=>`
+<div class="item">
+${p.image?`<img src="${p.image}" alt="">`:`<div class="noimg">Hakuna picha</div>`}
+<div class="meta"><b>${esc(p.name)}</b><small>${esc(p.category)}${p.available===false?" • Imeisha":""}</small></div>
+<div class="actions">
+<button class="btn sm" data-act="img" data-id="${p.id}">Picha</button>
+<button class="btn sm" data-act="stock" data-id="${p.id}">${p.available===false?"Rudisha":"Imeisha"}</button>
+<button class="btn sm red" data-act="del" data-id="${p.id}">Futa</button>
+</div>
+</div>`).join("");
+}
+
+$("list").addEventListener("click",async e=>{
+const b=e.target.closest("button[data-act]");
+if(!b)return;
+const id=b.dataset.id,act=b.dataset.act;
+const p=items.find(x=>x.id===id);
+if(!p)return;
+try{
+if(act==="img"){replaceId=id;$("replaceFile").value="";$("replaceFile").click()}
+if(act==="stock"){await F.updateDoc(F.doc(db,"perfumes",id),{available:p.available===false})}
+if(act==="del"&&confirm("Futa "+p.name+"?")){await F.deleteDoc(F.doc(db,"perfumes",id))}
+}catch(err){say("adminStatus","Imeshindwa: "+errText(err),"err")}
+});
+
+$("replaceFile").addEventListener("change",async function(){
+const f=this.files[0];
+if(!f||!replaceId)return;
+say("adminStatus","Inapakia picha...");
+try{
+const d=await compress(f);
+await F.updateDoc(F.doc(db,"perfumes",replaceId),{image:d});
+say("adminStatus","Picha imebadilishwa ✔","ok");
+}catch(err){say("adminStatus","Imeshindwa: "+errText(err),"err")}
+});
+
+/* Add new */
+$("newFile").addEventListener("change",async function(){
+const f=this.files[0];
+if(!f){newImage="";$("newPreview").hidden=true;return}
+try{
+newImage=await compress(f);
+$("newPreview").src=newImage;
+$("newPreview").hidden=false;
+}catch(err){say("adminStatus",errText(err),"err")}
+});
+
+$("saveBtn").addEventListener("click",async()=>{
+const name=$("newName").value.trim();
+if(!name){say("adminStatus","Weka jina la perfume.","err");return}
+if(!newImage){say("adminStatus","Chagua picha ya perfume.","err");return}
+$("saveBtn").disabled=true;
+say("adminStatus","Inahifadhi...");
+try{
+await F.addDoc(F.collection(db,"perfumes"),{
+name:name,category:$("newCat").value,image:newImage,available:true,createdAt:Date.now()
+});
+$("newName").value="";$("newFile").value="";newImage="";$("newPreview").hidden=true;
+say("adminStatus","Imehifadhiwa ✔","ok");
+}catch(err){
+say("adminStatus","Imeshindwa kuhifadhi: "+errText(err),"err");
+}
+$("saveBtn").disabled=false;
+});
+
+$("seedBtn").addEventListener("click",async()=>{
+try{
+const batch=F.writeBatch(db);
+const base=Date.now();
+DEFAULTS.forEach(([name,category],i)=>{
+batch.set(F.doc(F.collection(db,"perfumes")),{name,category,image:"",available:true,createdAt:base-i});
+});
+await batch.commit();
+say("adminStatus","Perfume za mwanzo zimeingizwa ✔","ok");
+}catch(err){say("adminStatus","Imeshindwa: "+errText(err),"err")}
+});
+</script>
+</body>
+</html>
